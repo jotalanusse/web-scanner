@@ -6,7 +6,7 @@ from config import CONFIG
 
 # Scan a list of ports in a host to find out if they are open
 def scan_open_ports(host):
-    print(f"Scanning ports for host [{host}]...")
+    # print(f"Scanning ports for host [{host}]...")
     
     start_time = time.time() # Start a timer to measure performance
   
