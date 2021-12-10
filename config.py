@@ -3,7 +3,7 @@
 
 # COMMON_PORTS = [9, 21, 22, 25, 23, 43, 80, 81, 110, 123, 135, 137, 143, 145, 401, 443, 465, 554, 587, 631, 989, 990, 993, 995, 1433, 1434, 1883, 3000, 3306, 3389, 5900, 8291, 9050, 25565, 42069]
 CONFIG = {
-    "host_scan_threads": 20, # Total threads to scan hosts
+    "host_scan_threads": 30, # Total threads to scan hosts
     "port_scan_threads": 120, # Total threads to scan ports
     "host_scan_batch_size": 10000000, # Batch size to scan hosts
     "screenshot_delay": 2, # Delay in seconds before taking a screenshot
