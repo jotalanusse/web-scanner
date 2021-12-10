@@ -5,17 +5,19 @@ from .is_port_open import is_port_open
 from config import CONFIG
 
 # Scan a list of ports in a host to find out if they are open
-def scan_open_ports(host):
+def scan_open_ports(host, timeout):
     # print(f"Scanning ports for host [{host}]...")
     
     start_time = time.time() # Start a timer to measure performance
   
     open_ports = []
-    
-    pool = NestablePool(CONFIG["port_scan_threads"]) # Start a new multiprocessing pool to scan ports
-    open_ports = pool.map(functools.partial(is_port_open, host), CONFIG["ports_to_scan"]) # Scan ports in parallel
-    pool.close() # Close the pool
-    pool.join() # Start the pool
+    try:
+        pool = NestablePool(CONFIG["port_scan_threads"]) # Start a new multiprocessing pool to scan ports
+        open_ports = pool.map(functools.partial(is_port_open, host, timeout), CONFIG["ports_to_scan"]) # Scan ports in parallel
+        pool.close() # Close the pool
+        pool.join() # Start the pool
+    except Exception as e:
+        print(e)
     
     open_ports = list(filter(None, open_ports)) # Remove all null values from list
     
