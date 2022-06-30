@@ -1,3 +1,4 @@
+from genericpath import isdir
 import json
 import math
 import numpy as np
@@ -10,14 +11,25 @@ CONFIG = {
     "min_ports": 1, # Minimum number of occurrences of a port to be considered
 }
 
+def getFiles(directory):
+    files = []
+    
+    for dir in listdir(directory):
+        if isdir(directory):
+            for file in listdir(join(directory, dir)):
+                filePath = join(directory, dir, file)
+                if isfile(filePath):
+                    files.append(filePath)
+
+    return files
+
 # Get all the files in the output folder
-files = [f for f in listdir(CONFIG["output_directory"]) if isfile(
-    join(CONFIG["output_directory"], f))]
+files = getFiles(CONFIG["output_directory"])
 
 # Convert every file into a dictionary
 scans = []
 for file in files:
-    with open(join(CONFIG["output_directory"], file)) as f:
+    with open(file) as f:
         scan = json.load(f)
         scans.append(scan)
 

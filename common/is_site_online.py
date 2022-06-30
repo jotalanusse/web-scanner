@@ -6,7 +6,7 @@ def is_site_online(host):
 
     # TODO: Maybe add 403 and other status codes to the list
     if resp.ok:
-        # print(f"Site [{host}] is online")
+        print(f"Site [{host}] is online")
         
         return True
     else:

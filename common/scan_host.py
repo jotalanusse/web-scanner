@@ -30,10 +30,9 @@ def scan_host(id, host):
         }
         
         if len(scan["ports"]) > 0: # If the host has open ports
-            # scan_output_path = join(CONFIG["output_directory"], scan["host"]) # Create the output directory for the host
-            # create_directory(scan_output_path) # Create the directory for the scan
-            
-            save_scan(scan, join(CONFIG["output_directory"], scan["host"] + ".json")) # Save the scan to a file
+            scan_output_path = join(CONFIG["output_directory"], scan["host"]) # Create the output directory for the host
+            create_directory(scan_output_path) # Create the directory for the scan
+            save_scan(scan, join(scan_output_path, "scan.json")) # Save the scan to a file
             
             # site = "http://" + scan['host']
             # if is_site_online(site): # Only attempt to screenshot if the site is online

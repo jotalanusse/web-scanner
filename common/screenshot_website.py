@@ -3,8 +3,10 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from config import CONFIG
 
-# Screenshot a given site and save it to the given path
+# # Screenshot a given site and save it to the given path
 # def screenshot_website(site, filename):
+#     print(f'Screenshoting site [{site}]')
+    
 #     options = Options() # Create a new options object
 #     options.headless = True # Avoid the windows popping up
     
@@ -16,3 +18,5 @@ from config import CONFIG
     
 #     driver.get_screenshot_as_file(filename) # Screenshot the page
 #     driver.quit() # Quit the driver
+    
+#     print(f'DONE')
