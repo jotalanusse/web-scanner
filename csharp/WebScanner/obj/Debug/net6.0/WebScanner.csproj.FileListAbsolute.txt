@@ -1,0 +1,15 @@
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\bin\Debug\net6.0\WebScanner.exe
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\bin\Debug\net6.0\WebScanner.deps.json
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\bin\Debug\net6.0\WebScanner.runtimeconfig.json
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\bin\Debug\net6.0\WebScanner.dll
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\bin\Debug\net6.0\WebScanner.pdb
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\obj\Debug\net6.0\WebScanner.csproj.AssemblyReference.cache
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\obj\Debug\net6.0\WebScanner.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\obj\Debug\net6.0\WebScanner.AssemblyInfoInputs.cache
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\obj\Debug\net6.0\WebScanner.AssemblyInfo.cs
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\obj\Debug\net6.0\WebScanner.csproj.CoreCompileInputs.cache
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\obj\Debug\net6.0\WebScanner.dll
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\obj\Debug\net6.0\refint\WebScanner.dll
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\obj\Debug\net6.0\WebScanner.pdb
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\obj\Debug\net6.0\WebScanner.genruntimeconfig.cache
+C:\Users\jotal\Documents\GitHub\web-scanner\csharp\WebScanner\obj\Debug\net6.0\ref\WebScanner.dll
