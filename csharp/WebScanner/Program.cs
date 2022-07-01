@@ -4,14 +4,15 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text.Json;
+using System.Text.RegularExpressions;
 
-List<int> ports = new List<int> { 9, 21, 22, 25, 23, 43, 80, 81, 110, 123, 135, 137, 143, 145, 401, 443, 465, 554, 587, 631, 989, 990, 993, 995, 1433, 1434, 1883, 3000, 3306, 3389, 5900, 8291, 9050, 25565, 42069 };
+// List<int> ports = new List<int> { 9, 21, 22, 25, 23, 43, 80, 81, 110, 123, 135, 137, 143, 145, 401, 443, 465, 554, 587, 631, 989, 990, 993, 995, 1433, 1434, 1883, 3000, 3306, 3389, 5900, 8291, 9050, 25565, 42069 };
 // List<int> ports = new List<int> { 25565 };
+List<int> ports = new List<int> { 554 };
 
-WebScanner webScanner = new WebScanner(ports, 300, 1.2, "./scans.txt", 1000);
+WebScanner webScanner = new WebScanner(ports, 400, 1.5, "./scans.txt", 1000);
 
-for (int i = 0; i < 1; i += 1)
+for (int i = 0; i < 100000; i += 1)
 {
     List<IPAddress> hosts = webScanner.GenerateRandomIPAddresses(1000000);
     webScanner.ScanHosts(hosts);
@@ -47,17 +48,100 @@ public class WebScanner {
         ThreadPool.SetMinThreads(worker, ioCompletion);
     }
 
-    // Create a list of random IP addresses
-    public List<IPAddress> GenerateRandomIPAddresses(int amount)
+    // Scan a single host and return the scan result
+    public Scan ScanHost(IPAddress host)
     {
-        List<IPAddress> addresses = new List<IPAddress>();
+        // Console.WriteLine($"Scanning host [{host}]...");
 
-        for (int i = 0; i < amount; i += 1)
+        Scan scan = new Scan(host); // Create an empty scan instance to save our details
+
+        try
         {
-            addresses.Add(GenerateRandomIPAddress());
+            PingReply pingReply = PingHost(host, scanTimeout); // First ping the host to see if it's online
+
+            // If the host is not online we simply return the empty scan
+            if (pingReply.Status == IPStatus.Success)
+            {
+                // Console.WriteLine($"Host [{host}] is online with a ping of [{pingReply.RoundtripTime}] ms");
+
+                scan.online = true;
+                scan.ping = pingReply.RoundtripTime;
+
+                int portScanTimeout = (int)(scan.ping * portTimeoutRatio); // We use the ping of the host as the base of the timeout
+                scan.ports = ScanOpenPorts(host, ports, portScanTimeout); // TODO: Change the timeout for the host ping
+
+                return scan;
+            }
+        }
+        catch (PingException e)
+        {
+            // Console.WriteLine(e.Message);
         }
 
-        return addresses;
+        // Console.WriteLine($"Host [{host}] is offline");
+
+        return scan;
+    }
+
+    // Scan a list of hosts and return the results
+    public List<Scan> ScanHosts(List<IPAddress> hosts)
+    {
+        Console.WriteLine($"Scanning a total of [{hosts.Count}] hosts");
+
+        ConcurrentBag<Scan> scans = new ConcurrentBag<Scan>();
+
+        Stopwatch clock = Stopwatch.StartNew();
+        clock.Start();
+
+        int totalCompletedScans = 0;
+        int batchCompletedScans = 0;
+
+        ParallelLoopResult result = Parallel.ForEach(hosts, new ParallelOptions { MaxDegreeOfParallelism = 1000 }, host =>
+        {
+            Scan scan = ScanHost(host);
+            SaveScan(scan, outputFilePath);
+
+
+            totalCompletedScans += 1;
+            batchCompletedScans += 1;
+
+            if (batchCompletedScans % 8000 == 0)
+            {
+                clock.Stop();
+
+                double elapsedMilliSeconds = clock.ElapsedMilliseconds;
+                double scansPerMilliSecond = batchCompletedScans / elapsedMilliSeconds;
+                double scansPerSecond = Math.Round(scansPerMilliSecond * 1000, 2);
+                double portScansPerSecond = Math.Round(scansPerMilliSecond * ports.Count * 1000, 2);
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"Total scanned hosts [{totalCompletedScans}] @ Scans [{scansPerSecond}/s], Ports [{portScansPerSecond}/s]");
+                Console.ResetColor();
+
+                // Console.WriteLine($"Last scanned host was [{scan.host}]");
+
+                batchCompletedScans = 0;
+
+                clock.Restart();
+                clock.Start();
+            }
+
+            // scans.Add(scan);
+        });
+
+        return scans.ToList();
+    }
+
+    // Ping a host and return its reply
+    PingReply PingHost(IPAddress host, int timeout)
+    {
+        // Console.WriteLine($"Pinging host [{host}]");
+
+        Ping ping = new Ping();
+        PingReply reply = ping.Send(host, timeout);
+        ping.Dispose();
+
+        return reply;
     }
 
     // Create a single random IP address
@@ -77,18 +161,19 @@ public class WebScanner {
         IPAddress ip = new IPAddress(data); // Create an IPAddress from the random bytes
 
         return ip;
-    } 
+    }
 
-    // Ping a host and return its reply
-    PingReply PingHost(IPAddress host, int timeout)
+    // Create a list of random IP addresses
+    public List<IPAddress> GenerateRandomIPAddresses(int amount)
     {
-        // Console.WriteLine($"Pinging host [{host}]");
+        List<IPAddress> addresses = new List<IPAddress>();
 
-        Ping ping = new Ping();
-        PingReply reply = ping.Send(host, timeout);
-        ping.Dispose();
+        for (int i = 0; i < amount; i += 1)
+        {
+            addresses.Add(GenerateRandomIPAddress());
+        }
 
-        return reply;
+        return addresses;
     }
 
     // Check if the given port is open in a host
@@ -150,53 +235,6 @@ public class WebScanner {
         return openPorts.ToList();
     }
 
-    // Scan a list of hosts and return the results
-    public List<Scan> ScanHosts(List<IPAddress> hosts)
-    {
-        Console.WriteLine($"Scanning a total of [{hosts.Count}] hosts");
-
-        ConcurrentBag<Scan> scans = new ConcurrentBag<Scan>();
-
-        Stopwatch clock = Stopwatch.StartNew();
-        clock.Start();
-
-        int totalCompletedScans = 0;
-        int batchCompletedScans = 0;
-
-        ParallelLoopResult result = Parallel.ForEach(hosts, new ParallelOptions { MaxDegreeOfParallelism = 400 }, host =>
-        {
-            Scan scan = ScanHost(host);
-            SaveScan(scan, outputFilePath);
-
-
-            totalCompletedScans += 1;
-            batchCompletedScans += 1;
-
-            if (batchCompletedScans % 20000 == 0)
-            {
-                clock.Stop();
-                double elapsedMilliSeconds = clock.ElapsedMilliseconds;
-                double scansPerMilliSecond = batchCompletedScans / elapsedMilliSeconds;
-                double scansPerSecond = Math.Round(scansPerMilliSecond * 1000, 2);
-                double portScansPerSecond = Math.Round(scansPerMilliSecond * ports.Count * 1000, 2);
-
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Total scanned hosts [{totalCompletedScans}] @ Scans [{scansPerSecond}/s], Ports [{portScansPerSecond}/s]");
-                Console.ResetColor();
-
-                Console.WriteLine($"Last scanned host was [{scan.host}]");
-
-                batchCompletedScans = 0;
-                clock.Restart();
-                clock.Start();
-            }
-
-            // scans.Add(scan);
-        });
-
-        return scans.ToList();
-    }
-
     // Sva a scan to the specified file
     void SaveScan(Scan scan, string outputFilePath)
     {
@@ -206,6 +244,18 @@ public class WebScanner {
             // Convert the scan to a "SimpleScan" so it's easier to serialize
             SimpleScan simpleScan = new SimpleScan(scan);
             string scanJson = JsonConvert.SerializeObject(simpleScan);
+
+/*            if (scan.ports.Contains(80))
+            {
+                string title = GetPageTitle("http://" + scan.host);
+
+                if (title != "")
+                {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine($"Title for host [{scan.host}] is [{title}]");
+                    Console.ResetColor();
+                }
+            }*/
 
             readerWriterLock.EnterWriteLock(); // Use a lock to avoid 2 threads trying to write at the same time
             try
@@ -223,40 +273,29 @@ public class WebScanner {
         }
     }
 
-    // Scan a single host and return the scan result
-    public Scan ScanHost(IPAddress host)
+/*    static string GetPageTitle(string link)
     {
-        // Console.WriteLine($"Scanning host [{host}]...");
-
-        Scan scan = new Scan(host); // Create an empty scan instance to save our details
-
         try
         {
-            PingReply pingReply = PingHost(host, scanTimeout); // First ping the host to see if it's online
+            WebClient client = new WebClient();
+            string html = client.DownloadString(link);
 
-            // If the host is not online we simply return the empty scan
-            if (pingReply.Status == IPStatus.Success)
+            Regex regex = new Regex("<title>(.*)</title>");
+            MatchCollection matches = regex.Matches(html);
+
+            if (matches.Count > 0)
             {
-                // Console.WriteLine($"Host [{host}] is online with a ping of [{pingReply.RoundtripTime}] ms");
-
-                scan.online = true;
-                scan.ping = pingReply.RoundtripTime;
-
-                int portScanTimeout = (int)(scan.ping * portTimeoutRatio); // We use the ping of the host as the base of the timeout
-                scan.ports = ScanOpenPorts(host, ports, portScanTimeout); // TODO: Change the timeout for the host ping
-
-                return scan;
+                return matches[0].Value.Replace("<title>", "").Replace("</title>", "");
             }
+
+            return "";
         }
-        catch (PingException e)
+        catch (Exception ex)
         {
-            // Console.WriteLine(e.Message);
+            // Console.WriteLine("Could not connect. Error:" + ex.Message);
+            return "";
         }
-
-        // Console.WriteLine($"Host [{host}] is offline");
-
-        return scan;
-    }
+    }*/
 
     public class Scan
     {
