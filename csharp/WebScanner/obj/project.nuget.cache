@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "MAa3lUKo/DlVUOH2Ns/coauohbx1RQpdJFfksjCOlqzClawCz9y1TD34xC7q8Lq+T6eG6gbflDs2sLJ71QwUKQ==",
+  "dgSpecHash": "Ahvq3afOt0Bt44RcJxb7ZDQ/ELyU8iaJW7uqJB37SVEkPyTOg0vibsGM3PowygyNPKcPDvHlAsJkpn0A74BWtA==",
   "success": true,
   "projectFilePath": "C:\\Users\\jotal\\Documents\\GitHub\\web-scanner\\csharp\\WebScanner\\WebScanner.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\jotal\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512"
+  ],
   "logs": []
 }
